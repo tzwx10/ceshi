@@ -1,0 +1,20 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+C:\Users\Administrator\Desktop\RS485项目\单片机多机通信4\单片机多机通信\11\cj1.uv2
+Project File Date:  08/12/2020
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling 多级通信从机1.c...
+多级通信从机1.C(87): warning C280: 'i': unreferenced local variable
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY_1MS?多级通信从籣1
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?JIESHOU?多级通信从籣1
+Program Size: data=15.0 xdata=0 code=453
+creating hex file from "cj1"...
+"cj1" - 0 Error(s), 3 Warning(s).

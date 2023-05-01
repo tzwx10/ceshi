@@ -1,0 +1,203 @@
+C51 COMPILER V9.54   ____________                                                          03/26/2023 19:09:44 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE ____________
+OBJECT MODULE PLACED IN 多机通信主机.OBJ
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE 多机通信主机.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<string.h>
+   3          
+   4          #define _SUCC_   0x0f//数据传送成功
+   5          #define _ERR_    0xf0//数据传送失败
+   6          #define u8 unsigned char
+   7          
+   8          unsigned char Table[9]={0x01,0x02,0x04,0x08,0x35,0x36,0x37,0x38,0x39};  //前3个字节为速度  后六个字节为返回
+             -速度 和压力值
+   9          //unsigned char Table[]="123456789";
+  10          unsigned char Buff[3]={0x08,0X05,0X03};  //数据缓冲区
+  11          unsigned char temp=0xff;
+  12          sbit KEY1=P2^1;
+  13          sbit KEY2=P2^2;
+  14          sbit KEY3=P2^3;
+  15          sbit led=P2^0;
+  16          
+  17          sbit LED1=P2^4;
+  18          sbit LED2=P2^5;
+  19          sbit LED3=P2^6;
+  20          sbit Rs485_die=P3^7; //高电平输出  低电平输入
+  21          u8 tempt1;
+  22          //unsigned char addr;
+  23          
+  24          //延时1ms函数
+  25           void delay_1ms(unsigned int t);
+  26          
+  27           void serial_init(void);
+  28           u8 SEND_data(u8 addr,u8 *Buff);
+  29               
+  30          void main()
+  31          {
+  32   1       
+  33   1      
+  34   1       serial_init();
+  35   1        KEY1=1;
+  36   1        KEY2=1;
+  37   1        KEY3=1;
+  38   1        Rs485_die=1;
+  39   1        TB8=1;SM2=0; Rs485_die=1;  //fa song di zi  发送地址
+  40   1        led=1;
+  41   1       while(1)
+  42   1       {
+  43   2         
+  44   2         TB8=1;
+  45   2        if(KEY1==0)
+  46   2        {
+  47   3          delay_1ms(5);
+  48   3          if(KEY1==0)
+  49   3          {
+  50   4           
+  51   4            SEND_data(0x01,Buff);
+  52   4            delay_1ms(300);
+  53   4            LED1=~LED1;
+  54   4            delay_1ms(30);
+C51 COMPILER V9.54   ____________                                                          03/26/2023 19:09:44 PAGE 2   
+
+  55   4          }
+  56   3        }
+  57   2       
+  58   2        if(KEY2==0)
+  59   2        {
+  60   3          delay_1ms(5);
+  61   3          if(KEY2==0)
+  62   3          {
+  63   4            delay_1ms(300);
+  64   4            LED2=~LED2;
+  65   4            SEND_data(0x02,Buff);
+  66   4        
+  67   4        
+  68   4          }
+  69   3        }
+  70   2      
+  71   2      
+  72   2        if(KEY3==0)
+  73   2        {
+  74   3          delay_1ms(5);
+  75   3          if(KEY3==0)
+  76   3          {
+  77   4            
+  78   4        
+  79   4            delay_1ms(300);
+  80   4            LED3=~LED3;
+  81   4            SEND_data(0x03,Buff);
+  82   4        
+  83   4        
+  84   4          }
+  85   3        }
+  86   2      
+  87   2        
+  88   2      
+  89   2      
+  90   2      
+  91   2      
+  92   2      
+  93   2       }
+  94   1      }
+  95          
+  96          
+  97          void delay_1ms(unsigned int t)//延时
+  98          {
+  99   1       unsigned int x,y;
+ 100   1       for(x=t;x>0;x--)
+ 101   1        for(y=110;y>0;y--);
+ 102   1      }
+ 103          //缓冲区初始化
+ 104           
+ 105          
+ 106          //串口初始化函数
+ 107          void serial_init(void)
+ 108          {
+ 109   1       TMOD=0x20; //定时器1工作于方式2
+ 110   1       TH1=0xfd;  
+ 111   1       TL1=0xfd; //波特率为9600
+ 112   1       PCON=0;
+ 113   1       SCON=0xd0;  //串口工作于方式3
+ 114   1       TR1=1;  //开启定时器
+ 115   1       TI=0;  //                 清除中断标志位
+ 116   1       RI=0;
+C51 COMPILER V9.54   ____________                                                          03/26/2023 19:09:44 PAGE 3   
+
+ 117   1       //ES=1;            //打开接收中断
+ 118   1       //EA=1;            //打开总中断
+ 119   1       SM2=0;
+ 120   1      }
+ 121          //发送数据函数
+ 122          u8 SEND_data(u8 addr,u8 *Buff)
+ 123          {
+ 124   1            u8 i=0;
+ 125   1         
+ 126   1            Rs485_die=1;
+ 127   1            TB8=1;
+ 128   1          TI=0;
+ 129   1          SBUF=addr;
+ 130   1          while(!TI);
+ 131   1          TI=0;
+ 132   1            
+ 133   1          Rs485_die=0;
+ 134   1          RI=0;
+ 135   1          while(!RI);
+ 136   1          tempt1 =SBUF;
+ 137   1          RI=0;
+ 138   1           if(tempt1==addr)
+ 139   1           {
+ 140   2              led=0;
+ 141   2              TB8=0;
+ 142   2           } else
+ 143   1           {
+ 144   2              return 0;
+ 145   2           }
+ 146   1      
+ 147   1            Rs485_die=1;
+ 148   1           TI=0;
+ 149   1           SBUF=Buff[0];
+ 150   1           while(!TI);
+ 151   1           TI=0;
+ 152   1      
+ 153   1      
+ 154   1          Rs485_die=0;
+ 155   1            RI=0;
+ 156   1          while(!RI);
+ 157   1          tempt1=SBUF;
+ 158   1          if(tempt1==addr)led=1;
+ 159   1          RI=0;
+ 160   1      
+ 161   1        
+ 162   1          while(!RI);         
+ 163   1          Buff[1]=SBUF;
+ 164   1          if(Buff[1]==addr)led=1;
+ 165   1           RI=0;
+ 166   1      
+ 167   1          Rs485_die=1;
+ 168   1      
+ 169   1      
+ 170   1      
+ 171   1      }
+ 172           
+*** WARNING C291 IN LINE 171 OF 多机通信主机.c: not every exit path returns a value
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    271    ----
+   CONSTANT SIZE    =   ----    ----
+C51 COMPILER V9.54   ____________                                                          03/26/2023 19:09:44 PAGE 4   
+
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

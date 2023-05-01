@@ -1,0 +1,166 @@
+C51 COMPILER V8.08   ¶à¼¶Í¨ÐÅ´Ó»_2                                                         08/12/2020 16:44:54 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE ¶à¼¶Í¨ÐÅ´Ó»_2
+OBJECT MODULE PLACED IN .\¶à¼¶Í¨ÐÅ´Ó»ú2.obj
+COMPILER INVOKED BY: E:\keil3\C51\BIN\C51.EXE ..\¶à¼¶Í¨ÐÅ´Ó»ú2.c BROWSE DEBUG OBJECTEXTEND OBJECT(.\¶à¼¶Í¨ÐÅ´Ó»ú2.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<string.h>
+   3          
+   4          #define addr     0x02//´Ó»ú2µÄµØÖ·
+   5          #define _SUCC_   0x0f//Êý¾Ý´«ËÍ³É¹¦
+   6          #define _ERR_    0xf0//Êý¾Ý´«ËÍÊ§°Ü
+   7          
+   8          #define u8 unsigned char
+   9          unsigned char aa=0xff;//Ö÷»úÓë´Ó»úÖ®¼äÍ¨ÐÅ±êÖ¾
+  10          unsigned char Buff[10];//Êý¾Ý»º³åÇø
+  11          unsigned char Buff1[10];//Êý¾Ý»º³åÇø
+  12          //´®¿Ú³õÊ¼»¯º¯Êý
+  13          void serial_init()
+  14          {
+  15   1       TMOD=0x20; //¶¨Ê±Æ÷1¹¤×÷ÓÚ·½Ê½2
+  16   1       TH1=0xfd;  
+  17   1       TL1=0xfd; //²¨ÌØÂÊÎª9600
+  18   1       PCON=0;
+  19   1       SCON=0xd0;  //´®¿Ú¹¤×÷ÓÚ·½Ê½3
+  20   1       TR1=1;  //¿ªÆô¶¨Ê±Æ÷
+  21   1       TI=0;
+  22   1       RI=0;
+  23   1      }
+  24          //½ÓÊÕÊý¾Ýº¯Êý
+  25          unsigned char RECE_data(unsigned char *Buff)
+  26          {
+  27   1       unsigned char i,temp;
+  28   1       unsigned char lenth;
+  29   1       unsigned char check;
+  30   1      
+  31   1       RI=0;     //½ÓÊÕÊý¾Ý³¤¶È
+  32   1       while(!RI);
+  33   1       if(RB8==1)    //Èô½ÓÊÕµ½µØÖ·Ö¡£¬Ôò·µ»Ø0xfe
+  34   1        return 0xfe;
+  35   1       lenth=SBUF;
+  36   1       RI=0;     
+  37   1       
+  38   1       check=lenth;
+  39   1       for(i=0;i<lenth;i++) //½ÓÊÕÊý¾Ý
+  40   1       {
+  41   2        while(!RI);
+  42   2        if(RB8==1)   //Èô½ÓÊÕµ½µØÖ·Ö¡£¬Ôò·µ»Ø0xfe
+  43   2         return 0xfe;
+  44   2        Buff[i]=SBUF;   
+  45   2        check=check^(Buff[i]);
+  46   2        RI=0;
+  47   2       }
+  48   1      
+  49   1       while(!RI);    //½ÓÊÕÐ£Ñé×Ö½Ú
+  50   1       if(RB8==1)    //Èô½ÓÊÕµ½µØÖ·Ö¡£¬Ôò·µ»Ø0xfe
+  51   1        return 0xfe;
+  52   1       temp=SBUF;
+  53   1       RI=0;
+  54   1            
+  55   1       check=temp^check;  //½«´ÓÖ÷»ú½ÓÊÕµ½µÄÐ£ÑéÂëÓë×Ô¼º¼ÆËãµÄÐ£ÑéÂë±È¶Ô
+C51 COMPILER V8.08   ¶à¼¶Í¨ÐÅ´Ó»_2                                                         08/12/2020 16:44:54 PAGE 2   
+
+  56   1       if(check!=0)   //Ð£ÑéÂë²»Ò»ÖÂ£¬±íÃ÷Êý¾Ý½ÓÊÕ´íÎó£¬ÏòÖ÷»ú·¢ËÍ´íÎóÐÅºÅ£¬º¯Êý·µ»Ø0xff
+  57   1       {
+  58   2        TI=0;
+  59   2        TB8=0;
+  60   2        SBUF=_ERR_;
+  61   2        while(!TI);
+  62   2        TI=0;
+  63   2        return 0xff;
+  64   2       }
+  65   1       TI=0;           //Ð£ÑéÂëÒ»ÖÂ£¬±íÃ÷Êý¾Ý½ÓÊÕÕýÈ·£¬ÏòÖ÷»ú·¢ËÍ³É¹¦ÐÅºÅ£¬º¯Êý·µ»Ø0x00
+  66   1       TB8=0;
+  67   1       SBUF=_SUCC_;
+  68   1       while(!TI);
+  69   1       TI=0;
+  70   1       return 0;
+  71   1      } 
+  72          
+  73          void receive(void)
+  74          {         u8 i;
+  75   1          if(RI==1)
+  76   1         {
+  77   2                 RI=0;
+  78   2                 aa=SBUF;
+  79   2                 RI=0;
+  80   2                if(aa==addr)
+  81   2                {
+  82   3                
+  83   3                                       
+  84   3                        TI=0;     //Ò»µ©±»ÇëÇó£¬´Ó»ú·µ»Ø×Ô¼ºµØÖ·×÷ÎªÓ¦´ð£¬µÈ´ý½ÓÊÕÊý¾Ý
+  85   3                        TB8=0;
+  86   3                        SBUF=addr;
+  87   3                        while(!TI);
+  88   3                        TI=0;
+  89   3                        SM2=0;                  //½ÓÊÕÊý¾Ý¡
+  90   3      
+  91   3      
+  92   3                        aa=0xff;    //´Ó»ú½ÓÊÕÊý¾Ý£¬²¢½«Êý¾Ý±£´æµ½Êý¾Ý»º³åÇø
+  93   3                        while(aa==0xff)
+  94   3                        {
+  95   4                         aa=RECE_data(Buff);
+  96   4                        }
+  97   3                         SM2=1;   
+  98   3                        if(aa==0)
+  99   3                        {
+ 100   4                               for(i=0;i<10;i++)
+ 101   4                               {
+ 102   5                                 Buff1[i]=Buff[i];
+ 103   5                               
+ 104   5                               }
+ 105   4      
+ 106   4                        }
+ 107   3      
+ 108   3                        P1=Buff1[2];      //²é¿´½ÓÊÕµ½µÄÊý¾Ý
+ 109   3                      
+ 110   3                }
+ 111   2                  RI=0;
+ 112   2              }
+ 113   1      
+ 114   1      
+ 115   1      
+ 116   1      }
+ 117          void main()
+C51 COMPILER V8.08   ¶à¼¶Í¨ÐÅ´Ó»_2                                                         08/12/2020 16:44:54 PAGE 3   
+
+ 118          {
+ 119   1       
+ 120   1      
+ 121   1       serial_init();
+ 122   1        SM2=1;              //½ÓÊÕµØÖ·Ö¡
+ 123   1         
+ 124   1      
+ 125   1      
+ 126   1       while(1)
+ 127   1       {
+ 128   2        
+ 129   2              receive();
+ 130   2      
+ 131   2      
+ 132   2      
+ 133   2      
+ 134   2      
+ 135   2      
+ 136   2       
+ 137   2       }
+ 138   1       }
+ 139          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    231    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     21       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
